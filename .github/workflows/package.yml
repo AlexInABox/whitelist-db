@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets{?name,label}"
-          asset_path: ./dist/WHITELIST-DB.exe
+          asset_path: dist/WHITELIST-DB.exe
           asset_name: WHITELIST-DB-${{ steps.get_version.outputs.version }}.exe
           asset_content_type: application/octet-stream
 

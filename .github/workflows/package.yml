@@ -46,3 +46,6 @@ jobs:
           tag_name: ${{ steps.get_version.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           body: WHITELIST-DB ${{ steps.get_version.outputs.version }}
+
+      - name: Cleanup
+        run: rm WHITELIST-DB.spec

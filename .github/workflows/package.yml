@@ -15,6 +15,7 @@ jobs:
       - name: Display the path
         shell: pwsh
         run: ls
+        working-directory: /
 
       - name: Retrieve version
         id: get_version

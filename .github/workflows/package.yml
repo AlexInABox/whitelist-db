@@ -11,6 +11,14 @@ jobs:
     runs-on: windows-latest
     
     steps:
+      - name: Retrieve version
+        id: get_version
+        run: |
+          $version = Get-Content version.txt -Raw
+          echo "::set-output name=version::$version"
+
+
+
       - name: Checkout Repository
         uses: actions/checkout@v2
 
@@ -26,11 +34,6 @@ jobs:
 
       - name: Build Executable
         run: pyinstaller --onefile WHITELIST-DB.py
-
-      - name: Retrieve version
-        id: get_version
-        run: |
-          Get-Content version.txt | ForEach-Object { $script:version = $_.Trim() }
 
       - name: Create release
         uses: softprops/action-gh-release@v1

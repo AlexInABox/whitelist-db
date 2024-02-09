@@ -12,8 +12,9 @@ jobs:
     
     steps:
 
-      - name: what
-        run: ls
+      - name: Display the path
+        shell: pwsh
+        run: echo ${env:PATH}
 
       - name: Retrieve version
         id: get_version

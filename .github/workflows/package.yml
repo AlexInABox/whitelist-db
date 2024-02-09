@@ -30,7 +30,7 @@ jobs:
       
       - name: Retrieve version!
         run: |
-          echo "__SCRIPT_VERSION=$(cat last_version.txt)" >> $GITHUB_OUTPUT
+          echo "__SCRIPT_VERSION=$(cat version.txt)" >> $GITHUB_OUTPUT
 
       - name: Create release!
         uses: marvinpinto/action-automatic-releases@latest

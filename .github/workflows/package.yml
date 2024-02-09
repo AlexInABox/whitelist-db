@@ -14,7 +14,7 @@ jobs:
 
       - name: Display the path
         shell: pwsh
-        run: echo ${env:PATH}
+        run: ls
 
       - name: Retrieve version
         id: get_version

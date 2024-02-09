@@ -29,4 +29,4 @@ jobs:
         run: pyinstaller --onefile WHITELIST-DB.py
       
       - name: Get contents
-        run: la
+        run: ls -a

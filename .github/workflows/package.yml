@@ -32,6 +32,16 @@ jobs:
         id: get_version
         run: echo "::set-output name=version::$(cat version.txt)"
 
+      - name: Upload Executable as Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ steps.create_release.outputs.id }}/assets{?name,label}"
+          asset_path: ./dist/WHITELIST-DB.exe
+          asset_name: WHITELIST-DB-${{ steps.get_version.outputs.version }}.exe
+          asset_content_type: application/octet-stream
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -42,13 +52,3 @@ jobs:
           release_name: Release ${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
-
-      - name: Upload Executable as Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/WHITELIST-DB.exe
-          asset_name: WHITELIST-DB.exe
-          asset_content_type: application/octet-stream

@@ -1,26 +1,54 @@
-name: Package Application with Pyinstaller
+name: Build and Publish Release
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
-
+    name: Build and Publish Release
     runs-on: ubuntu-latest
-
+    
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Package Application
-      uses: JackMcKew/pyinstaller-action-windows@python3-10-pyinstaller-5-3
-      with:
-        path:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: pleaseWork
-        path: src/dist/windows
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3-pip -y
+          pip install pyinstaller
+
+      - name: Build Executable
+        run: pyinstaller --onefile WHITELIST-DB.py
+
+      - name: Get Version from version.txt
+        id: get_version
+        run: echo "::set-output name=version::$(cat version.txt)"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Release ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Executable as Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/WHITELIST-DB.exe
+          asset_name: WHITELIST-DB.exe
+          asset_content_type: application/octet-stream

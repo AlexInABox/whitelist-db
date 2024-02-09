@@ -28,5 +28,15 @@ jobs:
       - name: Build Executable
         run: pyinstaller --onefile WHITELIST-DB.py
       
-      - name: Get contents
-        run: ls -a dist
+      - name: Retrieve version!
+        run: |
+          echo "__SCRIPT_VERSION=$(cat last_version.txt)" >> $GITHUB_OUTPUT
+
+      - name: Create release!
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: ${{ steps.version.outputs.__SCRIPT_VERSION }}
+          title: WHITELIST-DB ${{ steps.version.outputs.__SCRIPT_VERSION }}
+          files: dist/WHITELIST-DB.*

@@ -12,21 +12,18 @@ jobs:
     
     steps:
 
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
       - name: Display the path
         shell: pwsh
         run: ls
-        working-directory: /
 
       - name: Retrieve version
         id: get_version
         run: |
           $version = Get-Content version.txt -Raw
           echo "::set-output name=version::$version"
-
-
-
-      - name: Checkout Repository
-        uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2

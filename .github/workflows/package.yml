@@ -11,6 +11,10 @@ jobs:
     runs-on: windows-latest
     
     steps:
+
+      - name: what
+        run: ls
+
       - name: Retrieve version
         id: get_version
         run: |

@@ -1,75 +1,86 @@
-use std::{path::Path};
-
-use rusqlite::{Connection};
+use rusqlite::Connection;
+use std::collections::HashSet;
+use std::path::Path;
 
 pub fn start() {
-    println!("Hello from union.rs!");
+    let mut all_hashes: HashSet<String> = HashSet::with_capacity(400_000_000);
 
-    let hashes: Vec<String> = extract_from_dbfile(Path::new("./mydatabase.db"));
-    for hash in hashes{
-        println!("pretty hash: {hash}");
-    }
+    extract_md5_hashes_from_db(Path::new("./RDS_2025.03.1_ios_minimal.db"), &mut all_hashes);
+
+    println!(
+        "Collected {} / {} hashes.",
+        all_hashes.len(),
+        all_hashes.capacity()
+    )
 }
 
-fn extract_from_dbfile(filepath: &Path) -> Vec<String>{
-    let mut found_hashes: Vec<String> = vec![];
-
-    if !is_valid_sqlite_db(filepath){
-        println!("I dont feel so good...");
-        return found_hashes;
+fn extract_md5_hashes_from_db(filepath: &Path, hashset: &mut HashSet<String>) {
+    if !is_valid_sqlite_db(filepath) {
+        println!("Theres no valid SQLITE DATABASE at the location you provided...");
+        return;
     }
 
     let conn = match Connection::open(filepath) {
         Ok(c) => c,
-        Err(_) => {
-            eprintln!("I don't feel so good...");
-            return found_hashes;
+        Err(err) => {
+            eprintln!("Could'nt open the DATABASE: {err}");
+            return;
         }
     };
 
-    let mut statement = match conn.prepare("SELECT md5 FROM star") {
+    let mut statement = match conn.prepare("SELECT COUNT(md5) FROM FILE;") {
         Ok(s) => s,
-        Err(_) => {
-            eprintln!("I feel terrible");
-            return found_hashes;
+        Err(err) => {
+            eprintln!("I couldnt prepare the sql query: {err}");
+            return;
         }
     };
 
-
-    let result = match statement.query_map([], |row| {
-        let md5: String = row.get(0)?;
-        Ok(md5)
+    let row_count = match statement.query_one([], |row| {
+        let length: i64 = row.get(0)?;
+        Ok(length)
     }) {
         Ok(r) => r,
         Err(e) => {
-            eprintln!("I feel terrible: {}", e);
-            return found_hashes;
+            eprintln!("I couldnt query your database. Fix your query!: {e}");
+            return;
         }
     };
 
-    println!("I queried the database and got:");
-    for row in result {
-        match row {
-            Ok(md5) => {
-                found_hashes.push(md5);
-            },
-            Err(e) => eprintln!("Row error: {}", e),            
+    println!("We have a row count of {row_count}");
+    let mut statement = match conn.prepare("SELECT md5 FROM FILE") {
+        Ok(s) => s,
+        Err(err) => {
+            eprintln!("Failed to prepare query: {err}");
+            return;
+        }
+    };
+
+    let mut rows = match statement.query([]) {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Failed to query the database: {e}");
+            return;
+        }
+    };
+
+    let mut processed = 0;
+    while let Ok(Some(row)) = rows.next() {
+        let md5: String = match row.get(0) {
+            Ok(val) => val,
+            Err(e) => {
+                eprintln!("Failed to get row: {e}");
+                continue;
+            }
+        };
+        hashset.insert(md5);
+        processed += 1;
+
+        if processed % (row_count / 100).max(1) == 0 {
+            println!("Progress: {}%", processed * 100 / row_count);
         }
     }
-    
-
-
-
-
-
-    println!("I love america!!");
-    
-
-
-
-    return found_hashes;
 }
-
 
 fn is_valid_sqlite_db(path: &Path) -> bool {
     if !path.exists() {

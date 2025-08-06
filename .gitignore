@@ -2,3 +2,7 @@ build
 dist
 output
 *.spec
+
+# Added by cargo
+
+/target
